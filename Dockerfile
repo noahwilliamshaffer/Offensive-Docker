@@ -168,4 +168,112 @@ RUN \
 # Download linkfinder
     git clone --depth 1 https://github.com/GerbenJavado/LinkFinder.git && \
 # Download CMSeeK
-    git clone --depth 1 https://github.com/Tuhinshubhra/CMSeeK.git 
+    git clone --depth 1 https://github.com/Tuhinshubhra/CMSeeK.git && \
+# Install aquatone
+    wget --quiet https://github.com/michenriksen/aquatone/releases/download/v1.7.0/aquatone_linux_amd64_1.7.0.zip -O aquatone.zip && \
+    unzip aquatone.zip -d aquatone  && \
+    rm aquatone.zip && \
+# Install amass
+    wget --quiet https://github.com/OWASP/Amass/releases/download/v3.10.5/amass_linux_amd64.zip -O amass.zip && \
+    unzip amass.zip -d amass && \
+    rm amass.zip && \
+# Download Sublist3r
+    git clone --depth 1 https://github.com/aboul3la/Sublist3r.git && \
+# Download spiderfoot
+    git clone --depth 1 https://github.com/smicallef/spiderfoot && \
+    mkdir /temp/gowitness && \
+    mkdir /temp/subfinder && \
+    mkdir /temp/findomain && \
+    mkdir /temp/gau
+
+# Install Go tools
+FROM baseline as gotools
+WORKDIR /tmp
+
+# Install gowitness
+RUN \
+    go install github.com/sensepost/gowitness@latest && \
+# Install subjack
+    go install github.com/haccer/subjack@latest && \
+# Install SubOver
+    go install github.com/Ice3man543/SubOver@latest && \
+# Install gobuster
+    go install github.com/OJ/gobuster/v3@latest && \
+# Install subfinder
+    go install -v github.com/projectdiscovery/subfinder/v2/cmd/subfinder@latest && \
+# Install hakrawler
+    go install github.com/hakluke/hakrawler@latest && \
+# Install gospider
+    go install github.com/jaeles-project/gospider@latest && \
+# Install httprobe
+    go install github.com/tomnomnom/httprobe@latest && \
+# Install tko-subs
+    go install github.com/anshumanbh/tko-subs@latest && \
+# Install hakrevdns
+    go install github.com/hakluke/hakrevdns@latest && \
+# Install haktldextract
+    go install github.com/hakluke/haktldextract@latest && \
+# Install hakcheckurl
+    go install github.com/hakluke/hakcheckurl@latest && \
+# Install ffuf
+    go install github.com/ffuf/ffuf@latest && \
+# Install subjs
+    go install github.com/lc/subjs@latest && \
+# Install gau
+    go install github.com/lc/gau/v2/cmd/gau@latest && \
+# Install httpx
+    go install -v github.com/projectdiscovery/httpx/cmd/httpx@latest && \
+# Install otxurls
+    go install github.com/lc/otxurls@latest && \
+# Install waybackurls
+    go install github.com/tomnomnom/waybackurls@latest && \
+# Install getJS
+    go install github.com/003random/getJS@latest
+
+# Install wordlists
+FROM baseline as wordlists
+WORKDIR /wordlists
+
+# Download SecLists
+RUN \
+    git clone --depth 1 https://github.com/danielmiessler/SecLists.git && \
+# Download fuzzdb
+    git clone --depth 1 https://github.com/fuzzdb-project/fuzzdb.git && \
+# Download dirbuster
+    mkdir -p /wordlists/dirbuster && \
+    wget -q https://sourceforge.net/projects/dirbuster/files/DirBuster%20Lists/Current/DirBuster-Lists.tar.bz2/download -O /wordlists/dirbuster/DirBuster-Lists.tar.bz2 && \
+    tar -xjf /wordlists/dirbuster/DirBuster-Lists.tar.bz2 -C /wordlists/dirbuster && \
+    rm /wordlists/dirbuster/DirBuster-Lists.tar.bz2
+
+# Download rockyou
+RUN \
+    mkdir -p /wordlists/rockyou && \
+    wget -q https://github.com/praetorian-inc/Hob0Rules/raw/master/wordlists/rockyou.txt.gz -O /wordlists/rockyou/rockyou.txt.gz && \
+    gunzip /wordlists/rockyou/rockyou.txt.gz
+
+# FINAL IMAGE
+FROM baseline
+
+# Copy shell customization
+COPY shell/customFunctions /root/.customFunctions
+COPY shell/banner /root/.banner
+COPY shell/alias /root/.alias
+
+RUN \
+# Add custom functions to .zshrc
+    echo 'source /root/.customFunctions' >> /root/.zshrc && \
+# Add alias to .zshrc
+    echo 'source /root/.alias' >> /root/.zshrc && \
+# Invoke motd banner when opening the terminal
+    echo '/root/.banner' >> /root/.zshrc && \
+# Add paths
+    echo 'export PATH="$PATH:/usr/local/go/bin:/root/go/bin"' >> /root/.zshrc
+
+# Expose proxy ports
+EXPOSE 80 3128
+
+# Create tools folder
+RUN mkdir -p /tools
+
+# Start services when running the container
+CMD service apache2 start && service squid start && /bin/zsh 

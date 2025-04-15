@@ -1,0 +1,16 @@
+dnspython
+argparse
+requests
+bs4
+tldextract
+shodan
+python-whois
+colorama
+urllib3
+termcolor
+ipwhois
+fake-useragent
+pyOpenSSL
+pycryptodome
+scapy
+patator 

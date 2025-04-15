@@ -1,0 +1,10 @@
+# Temporary files
+*.tmp
+*.bak
+*.swp
+
+# Environment variables
+.env
+
+# User-specific files
+.DS_Store 
